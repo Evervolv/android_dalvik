@@ -1346,6 +1346,12 @@ static void blockSignals()
         cc = sigaction(SIGBUS, &sa, NULL);
         assert(cc == 0);
     }
+#ifdef NDEBUG
+    // assert() is defined to nothing - resulting in
+    // cc: variable defined but not used (which breaks
+    // the build if -Werror is on)
+    (void)cc;
+#endif
 }
 
 class ScopedShutdown {
@@ -1673,10 +1679,12 @@ static bool initZygote()
  */
 bool dvmInitAfterZygote()
 {
+#ifndef LOG_NDEBUG
     u8 startHeap, startQuit, startJdwp;
     u8 endHeap, endQuit, endJdwp;
 
     startHeap = dvmGetRelativeTimeUsec();
+#endif
 
     /*
      * Post-zygote heap initialization, including starting
@@ -1685,8 +1693,10 @@ bool dvmInitAfterZygote()
     if (!dvmGcStartupAfterZygote())
         return false;
 
+#ifndef LOG_NDEBUG
     endHeap = dvmGetRelativeTimeUsec();
     startQuit = dvmGetRelativeTimeUsec();
+#endif
 
     /* start signal catcher thread that dumps stacks on SIGQUIT */
     if (!gDvm.reduceSignals && !gDvm.noQuitHandler) {
@@ -1700,8 +1710,10 @@ bool dvmInitAfterZygote()
             return false;
     }
 
+#ifndef LOG_NDEBUG
     endQuit = dvmGetRelativeTimeUsec();
     startJdwp = dvmGetRelativeTimeUsec();
+#endif
 
     /*
      * Start JDWP thread.  If the command-line debugger flags specified
@@ -1712,7 +1724,9 @@ bool dvmInitAfterZygote()
         ALOGD("JDWP init failed; continuing anyway");
     }
 
+#ifndef LOG_NDEBUG
     endJdwp = dvmGetRelativeTimeUsec();
+#endif
 
     ALOGV("thread-start heap=%d quit=%d jdwp=%d total=%d usec",
         (int)(endHeap-startHeap), (int)(endQuit-startQuit),

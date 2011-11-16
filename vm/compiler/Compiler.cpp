@@ -142,6 +142,9 @@ bool dvmCompilerWorkEnqueue(const u2 *pc, WorkOrderKind kind, void* info)
     gDvmJit.compilerQueueLength++;
     cc = pthread_cond_signal(&gDvmJit.compilerQueueActivity);
     assert(cc == 0);
+#ifdef NDEBUG
+    (void)cc; // prevent error on -Werror
+#endif
 
     dvmUnlockMutex(&gDvmJit.compilerLock);
     return result;
@@ -656,6 +659,9 @@ static void *compilerThreadStart(void *arg)
             int cc;
             cc = pthread_cond_signal(&gDvmJit.compilerQueueEmpty);
             assert(cc == 0);
+#ifdef NDEBUG
+            (void)cc; // prevent bug on -Werror
+#endif
             pthread_cond_wait(&gDvmJit.compilerQueueActivity,
                               &gDvmJit.compilerLock);
             continue;
