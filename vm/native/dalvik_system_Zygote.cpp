@@ -25,6 +25,9 @@
 #endif
 
 #include <signal.h>
+#if (__GNUC__ == 4 && __GNUC_MINOR__ == 7)
+#include <sys/resource.h>
+#endif
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/mman.h>
